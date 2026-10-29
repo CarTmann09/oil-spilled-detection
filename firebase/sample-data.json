@@ -1,0 +1,23 @@
+{
+  "live": {
+    "jetty-01": {
+      "cam-01": {
+        "siteId": "jetty-01",
+        "cameraId": "cam-01",
+        "systemStatus": "ONLINE",
+        "cameraStatus": "CONNECTED",
+        "inferenceStatus": "RUNNING",
+        "detectionStatus": "NORMAL",
+        "confidence": 0.97,
+        "predictedAreaRatio": 0.0012,
+        "incidentId": null,
+        "lastDetectionAtMs": 1793255400000,
+        "lastHeartbeatAtMs": 1793255400000,
+        "backend": "ONNXRuntime-CPU",
+        "streamUrl": null
+      }
+    }
+  },
+  "eventLogs": {},
+  "incidents": {}
+}

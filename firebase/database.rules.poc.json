@@ -1,0 +1,17 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "live": {
+      ".read": true
+    },
+    "eventLogs": {
+      ".read": true,
+      ".indexOn": ["timestampMs"]
+    },
+    "incidents": {
+      ".read": true,
+      ".indexOn": ["openedAtMs", "closedAtMs"]
+    }
+  }
+}

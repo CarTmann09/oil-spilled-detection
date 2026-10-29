@@ -1,0 +1,13 @@
+{
+  "pixel_threshold": 0.55,
+  "minimum_area_ratio": 0.0055,
+  "minimum_area_percent": 0.55,
+  "sample_fps": 1,
+  "positive_required": 3,
+  "temporal_window": 5,
+  "negative_to_clear": 5,
+  "normal_night_full_video_frames_tested": 712,
+  "normal_night_full_video_events": 0,
+  "spill_video_events": 1,
+  "status": "pilot_v3_hard_negative_validated"
+}

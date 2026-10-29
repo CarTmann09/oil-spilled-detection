@@ -1,0 +1,21 @@
+[Unit]
+Description=MediaMTX HLS Gateway for Jetty CCTV
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__APP_USER__
+Group=__APP_GROUP__
+WorkingDirectory=__PROJECT_DIR__
+EnvironmentFile=/etc/oil-spill/oil-spill.env
+ExecStart=__PROJECT_DIR__/scripts/run_mediamtx.sh
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

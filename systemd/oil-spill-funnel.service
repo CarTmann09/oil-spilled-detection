@@ -1,0 +1,13 @@
+[Unit]
+Description=Tailscale Funnel for Oil Spill HLS
+After=tailscaled.service mediamtx.service network-online.target
+Requires=mediamtx.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/tailscale funnel --bg 8888
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
