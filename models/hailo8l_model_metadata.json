@@ -1,0 +1,47 @@
+{
+  "model": "spill_unet_mobilenetv2_v3",
+  "task": "binary_semantic_segmentation",
+  "classes": [
+    "background",
+    "oil_spill"
+  ],
+  "source_onnx": "models/best_model.onnx",
+  "artifact": "models/best_model.hef",
+  "hardware": "hailo8l",
+  "compiler": {
+    "dataflow_compiler_version": "3.34.0",
+    "hailort_version": "4.24.0",
+    "optimization_level": 0,
+    "calibration_images": 128,
+    "contexts": 6
+  },
+  "input": {
+    "vstream_name": "spill_unet_mobilenetv2_v3/input_layer1",
+    "format": "UINT8",
+    "layout": "NHWC",
+    "shape": [
+      576,
+      1024,
+      3
+    ],
+    "normalization": "ImageNet mean and standard deviation embedded in HEF"
+  },
+  "output": {
+    "vstream_name": "spill_unet_mobilenetv2_v3/conv45",
+    "format": "UINT8",
+    "layout": "NHWC",
+    "shape": [
+      576,
+      1024,
+      1
+    ]
+  },
+  "sha256": "43DE44F42E724B9AEFCAA1EDCBAD9832C173B05494AED88118B710B5AC88FFA2",
+  "build_validation": {
+    "parse": "passed",
+    "optimization": "passed",
+    "compilation": "passed",
+    "hailort_parse_hef": "passed",
+    "physical_hailo8l_regression": "pending"
+  }
+}
