@@ -108,6 +108,7 @@ class Settings:
     telegram_chat_id: str
     telegram_send_snapshot: bool
     telegram_send_recovery: bool
+    telegram_send_daily_normal: bool
     dashboard_url: str
     hls_public_url: str
 
@@ -179,6 +180,7 @@ class Settings:
             telegram_chat_id=_text("TELEGRAM_CHAT_ID"),
             telegram_send_snapshot=_bool("TELEGRAM_SEND_SNAPSHOT", True),
             telegram_send_recovery=_bool("TELEGRAM_SEND_RECOVERY", True),
+            telegram_send_daily_normal=_bool("TELEGRAM_SEND_DAILY_NORMAL", True),
             dashboard_url=_text("DASHBOARD_URL"),
             hls_public_url=_text("HLS_PUBLIC_URL"),
             api_host=_text("API_HOST", "0.0.0.0"),

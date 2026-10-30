@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -39,6 +39,7 @@ class OilSpillMonitor:
             settings.positive_required,
             settings.negative_to_clear,
         )
+        self._restore_active_incident()
         if settings.inference_backend == "onnx":
             self.engine = OnnxEngine(
                 settings.onnx_model_path,
@@ -268,6 +269,8 @@ class OilSpillMonitor:
             self.telegram.send_alert(payload)
         elif channel == "telegram_recovery":
             self.telegram.send_recovery(payload)
+        elif channel == "telegram_daily_normal":
+            self.telegram.send_daily_normal(payload)
         else:
             raise ValueError(f"Channel sync tidak dikenal: {channel}")
 
@@ -282,17 +285,53 @@ class OilSpillMonitor:
                 and self.storage.get_metadata(key) is None
             ):
                 state = self.state.snapshot()
+                day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                day_end = day_start + timedelta(days=1)
+                had_spill_today = self.storage.event_exists_between(
+                    "INCIDENT_OPENED",
+                    int(day_start.timestamp() * 1000),
+                    int(day_end.timestamp() * 1000),
+                )
+                is_healthy_normal = self._should_send_daily_normal(
+                    state, had_spill_today
+                )
+                if not had_spill_today and not is_healthy_normal:
+                    LOGGER.info(
+                        "Daily normal Telegram waiting: system is not healthy normal"
+                    )
+                    await asyncio.sleep(20)
+                    continue
+                normal_confidence = max(
+                    0.0, min(1.0, 1.0 - float(state.get("maxProbability") or 0))
+                )
                 payload = self._persist_event(
                     event_type="DAILY_SUMMARY",
                     status=str(state["detectionStatus"]),
                     message=f"Ringkasan monitoring harian {self.settings.site_name}",
-                    confidence=float(state.get("confidence") or 0),
+                    confidence=(
+                        normal_confidence
+                        if is_healthy_normal
+                        else float(state.get("confidence") or 0)
+                    ),
                     area_ratio=float(state.get("predictedAreaRatio") or 0),
                     incident_id=state.get("incidentId"),
+                    monitoring_id=f"MON-{now:%Y%m%d}-001",
                     occurred_at=now,
                 )
                 if self.settings.firebase_enabled:
                     self._enqueue("firebase_event", payload["eventId"], payload)
+                if (
+                    self.settings.telegram_enabled
+                    and self.settings.telegram_send_daily_normal
+                    and is_healthy_normal
+                ):
+                    self._enqueue(
+                        "telegram_daily_normal", payload["eventId"], payload
+                    )
+                elif had_spill_today:
+                    LOGGER.info(
+                        "Daily normal Telegram skipped: spill occurred today"
+                    )
                 self.storage.set_metadata(key, "sent")
                 removed = await asyncio.to_thread(self.evidence.cleanup, now)
                 LOGGER.info("Daily summary created, evidence removed=%s", removed)
@@ -309,6 +348,7 @@ class OilSpillMonitor:
         snapshot_path: str | None = None,
         raw_snapshot_path: str | None = None,
         overlay_snapshot_path: str | None = None,
+        monitoring_id: str | None = None,
         occurred_at: datetime | None = None,
     ) -> dict[str, Any]:
         local_time = (occurred_at or datetime.now(self.timezone)).astimezone(self.timezone)
@@ -323,6 +363,7 @@ class OilSpillMonitor:
             "confidence": round(float(confidence), 6),
             "predictedAreaRatio": round(float(area_ratio), 8),
             "incidentId": incident_id,
+            "monitoringId": monitoring_id,
             "message": message,
             "snapshotPath": snapshot_path,
             "rawSnapshotPath": raw_snapshot_path,
@@ -330,6 +371,33 @@ class OilSpillMonitor:
         }
         self.storage.record_event(payload)
         return payload
+
+    def _restore_active_incident(self) -> None:
+        active = self.storage.active_incident()
+        if not active:
+            return
+        incident_id = str(active.get("incidentId") or "")
+        if not incident_id:
+            return
+        self.event_engine.restore_active_incident(incident_id)
+        self.state.update(
+            detectionStatus=DetectionStatus.SPILL_DETECTED.value,
+            incidentId=incident_id,
+            latestSnapshotPath=active.get("snapshotPath"),
+        )
+        LOGGER.warning("Restored active incident id=%s", incident_id)
+
+    @staticmethod
+    def _should_send_daily_normal(
+        state: dict[str, object], had_spill_today: bool
+    ) -> bool:
+        return (
+            not had_spill_today
+            and state.get("detectionStatus") == DetectionStatus.NORMAL.value
+            and state.get("incidentId") is None
+            and state.get("cameraStatus") == "CONNECTED"
+            and state.get("inferenceStatus") == "RUNNING"
+        )
 
     def _enqueue_external(
         self, payload: dict[str, Any], telegram_channel: str | None = None

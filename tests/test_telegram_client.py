@@ -9,6 +9,7 @@ def _settings(**overrides):
         "telegram_enabled": True,
         "telegram_send_snapshot": True,
         "telegram_send_recovery": True,
+        "telegram_send_daily_normal": True,
         "telegram_bot_token": "test-token",
         "telegram_chat_id": "-100123",
         "dashboard_url": "",
@@ -71,3 +72,23 @@ def test_alert_falls_back_to_single_snapshot(tmp_path, monkeypatch) -> None:
 
     assert captured["path"] == overlay
     assert "Foto 1:" not in captured["caption"]
+
+
+def test_daily_normal_message_has_monitoring_id(monkeypatch) -> None:
+    client = TelegramClient(_settings())
+    captured = {}
+    monkeypatch.setattr(
+        client, "_post_message", lambda message: captured.update(message=message)
+    )
+
+    client.send_daily_normal(
+        {
+            "confidence": 0.98,
+            "displayTime": "30 October 2026, 23:50:00",
+            "monitoringId": "MON-20261030-001",
+        }
+    )
+
+    assert "KONDISI NORMAL" in captured["message"]
+    assert "98.0%" in captured["message"]
+    assert "MON-20261030-001" in captured["message"]

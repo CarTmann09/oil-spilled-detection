@@ -36,3 +36,36 @@ def test_live_queue_keeps_only_latest_payload(tmp_path) -> None:
     assert len(items) == 1
     assert items[0]["payload"]["value"] == 2
     storage.close()
+
+
+def test_active_incident_and_daily_event_lookup(tmp_path) -> None:
+    storage = Storage(tmp_path / "monitor.db")
+    opened = {
+        "eventId": "open-1",
+        "timestampMs": 1_000,
+        "cameraId": "cam-01",
+        "type": "INCIDENT_OPENED",
+        "status": "TUMPAHAN_TERDETEKSI",
+        "confidence": 0.91,
+        "predictedAreaRatio": 0.02,
+        "incidentId": "OS-1",
+        "message": "opened",
+        "snapshotPath": None,
+    }
+    storage.record_event(opened)
+
+    assert storage.event_exists_between("INCIDENT_OPENED", 0, 2_000)
+    assert storage.active_incident()["incidentId"] == "OS-1"
+
+    storage.record_event(
+        {
+            **opened,
+            "eventId": "close-1",
+            "timestampMs": 1_500,
+            "type": "INCIDENT_CLOSED",
+            "status": "NORMAL",
+            "message": "closed",
+        }
+    )
+    assert storage.active_incident() is None
+    storage.close()

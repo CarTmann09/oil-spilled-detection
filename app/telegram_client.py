@@ -39,6 +39,23 @@ class TelegramClient:
         )
         self._post_message(message)
 
+    def send_daily_normal(self, payload: dict[str, Any]) -> None:
+        if not self.settings.telegram_send_daily_normal:
+            return
+        confidence = float(payload.get("confidence", 0)) * 100
+        message = (
+            "🟢 <b>KONDISI NORMAL</b>\n\n"
+            f"📍 <b>Lokasi:</b> {html.escape(self.settings.site_name)}\n"
+            f"🎥 <b>Kamera:</b> {html.escape(self.settings.camera_name)}\n"
+            "🟢 <b>Status:</b> Normal\n"
+            f"📊 <b>Confidence:</b> {confidence:.1f}%\n"
+            f"🕒 <b>Waktu:</b> {html.escape(str(payload.get('displayTime') or '-'))}\n"
+            f"🆔 <b>ID Monitoring:</b> "
+            f"{html.escape(str(payload.get('monitoringId') or '-'))}\n\n"
+            "Tidak ditemukan indikasi tumpahan minyak."
+        )
+        self._post_message(message)
+
     def _alert_caption(
         self, payload: dict[str, Any], include_album_legend: bool = False
     ) -> str:

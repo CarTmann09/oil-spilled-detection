@@ -16,6 +16,10 @@ Realtime Database, serta menyediakan live HLS melalui MediaMTX dan Tailscale Fun
   kembali ke satu foto atau pesan teks jika bukti tidak lengkap.
 - Tombol dashboard opsional; untuk album, Telegram menampilkannya sebagai pesan
   tombol terpisah karena `sendMediaGroup` tidak mendukung inline keyboard.
+- Notifikasi normal harian dikirim satu kali pada waktu yang dikonfigurasi hanya
+  jika tidak pernah ada tumpahan pada tanggal tersebut dan sistem sedang normal.
+- Insiden aktif dipulihkan dari SQLite setelah restart sehingga tumpahan yang sama
+  tidak membuka ID dan notifikasi baru.
 - FastAPI health/status/event/snapshot.
 - MediaMTX HLS dan Tailscale Funnel.
 - Service `systemd`, installer, health check, serta unit test.

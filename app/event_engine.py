@@ -67,3 +67,12 @@ class EventEngine:
     @property
     def event_open(self) -> bool:
         return self._event_open
+
+    def restore_active_incident(self, incident_id: str) -> None:
+        """Resume an incident after a service restart without opening a duplicate."""
+        if not incident_id:
+            raise ValueError("incident_id tidak boleh kosong")
+        self._event_open = True
+        self._incident_id = incident_id
+        self._negative_streak = 0
+        self._window.clear()

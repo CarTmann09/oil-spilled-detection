@@ -169,6 +169,40 @@ class Storage:
             rows = self._connection.execute(query, parameters).fetchall()
         return [json.loads(row["payload_json"]) for row in rows]
 
+    def event_exists_between(
+        self, event_type: str, start_ms: int, end_ms: int
+    ) -> bool:
+        with self._lock:
+            row = self._connection.execute(
+                """
+                SELECT 1 FROM events
+                WHERE type=? AND timestamp_ms>=? AND timestamp_ms<?
+                LIMIT 1
+                """,
+                (event_type, start_ms, end_ms),
+            ).fetchone()
+        return row is not None
+
+    def active_incident(self) -> dict[str, Any] | None:
+        """Return the newest incident that has no matching close event."""
+        with self._lock:
+            row = self._connection.execute(
+                """
+                SELECT opened.payload_json
+                FROM events AS opened
+                WHERE opened.type='INCIDENT_OPENED'
+                  AND opened.incident_id IS NOT NULL
+                  AND NOT EXISTS (
+                    SELECT 1 FROM events AS closed
+                    WHERE closed.type='INCIDENT_CLOSED'
+                      AND closed.incident_id=opened.incident_id
+                  )
+                ORDER BY opened.timestamp_ms DESC
+                LIMIT 1
+                """
+            ).fetchone()
+        return None if row is None else json.loads(row["payload_json"])
+
     def set_metadata(self, key: str, value: str) -> None:
         with self._lock, self._connection:
             self._connection.execute(
