@@ -28,3 +28,8 @@ def configure_logging(level: str, directory: Path, retention_days: int) -> None:
     root.handlers.clear()
     root.addHandler(console)
     root.addHandler(file_handler)
+
+    # Telegram authenticates through a token embedded in the request URL.
+    # Keep third-party request logs out of console, files, and systemd journal.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
