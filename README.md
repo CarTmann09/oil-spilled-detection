@@ -12,7 +12,10 @@ Realtime Database, serta menyediakan live HLS melalui MediaMTX dan Tailscale Fun
 - Camera reader dengan latest-frame strategy dan reconnect.
 - SQLite WAL dan antrean retry offline.
 - Firebase status, event log, incident, dan heartbeat 60 detik.
-- Telegram alert dengan snapshot dan tombol dashboard.
+- Telegram alert dengan album frame asli dan overlay segmentasi AI. Sistem otomatis
+  kembali ke satu foto atau pesan teks jika bukti tidak lengkap.
+- Tombol dashboard opsional; untuk album, Telegram menampilkannya sebagai pesan
+  tombol terpisah karena `sendMediaGroup` tidak mendukung inline keyboard.
 - FastAPI health/status/event/snapshot.
 - MediaMTX HLS dan Tailscale Funnel.
 - Service `systemd`, installer, health check, serta unit test.

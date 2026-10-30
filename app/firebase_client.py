@@ -36,7 +36,7 @@ class FirebaseClient:
         if not self.enabled or self._db is None:
             return
         event_id = str(payload["eventId"])
-        public_payload = {k: v for k, v in payload.items() if k != "snapshotPath"}
+        public_payload = self._public_payload(payload)
         base = self.settings.firebase_event_log_path.strip("/")
         path = f"{base}/{event_id}"
         self._db.reference(path).set(public_payload)
@@ -45,7 +45,12 @@ class FirebaseClient:
         if not self.enabled or self._db is None:
             return
         incident_id = str(payload["incidentId"])
-        public_payload = {k: v for k, v in payload.items() if k != "snapshotPath"}
+        public_payload = self._public_payload(payload)
         base = self.settings.firebase_incident_path.strip("/")
         path = f"{base}/{incident_id}"
         self._db.reference(path).update(public_payload)
+
+    @staticmethod
+    def _public_payload(payload: dict[str, Any]) -> dict[str, Any]:
+        """Remove Raspberry Pi-local file paths before writing public data."""
+        return {key: value for key, value in payload.items() if not key.endswith("Path")}

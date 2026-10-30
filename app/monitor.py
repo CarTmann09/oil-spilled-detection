@@ -159,7 +159,9 @@ class OilSpillMonitor:
             incident_id,
             decision.occurred_at,
         )
-        snapshot_path = evidence.get("overlay") or evidence.get("raw")
+        raw_snapshot_path = evidence.get("raw")
+        overlay_snapshot_path = evidence.get("overlay")
+        snapshot_path = overlay_snapshot_path or raw_snapshot_path
         self.state.update(latestSnapshotPath=snapshot_path)
         payload = self._persist_event(
             event_type="INCIDENT_OPENED",
@@ -169,6 +171,8 @@ class OilSpillMonitor:
             area_ratio=result.area_ratio,
             incident_id=incident_id,
             snapshot_path=snapshot_path,
+            raw_snapshot_path=raw_snapshot_path,
+            overlay_snapshot_path=overlay_snapshot_path,
             occurred_at=decision.occurred_at,
         )
         incident = {
@@ -303,6 +307,8 @@ class OilSpillMonitor:
         area_ratio: float = 0.0,
         incident_id: str | None = None,
         snapshot_path: str | None = None,
+        raw_snapshot_path: str | None = None,
+        overlay_snapshot_path: str | None = None,
         occurred_at: datetime | None = None,
     ) -> dict[str, Any]:
         local_time = (occurred_at or datetime.now(self.timezone)).astimezone(self.timezone)
@@ -319,6 +325,8 @@ class OilSpillMonitor:
             "incidentId": incident_id,
             "message": message,
             "snapshotPath": snapshot_path,
+            "rawSnapshotPath": raw_snapshot_path,
+            "overlaySnapshotPath": overlay_snapshot_path,
         }
         self.storage.record_event(payload)
         return payload
