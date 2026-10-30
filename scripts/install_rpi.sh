@@ -73,6 +73,12 @@ sed \
   -e "s|__PROJECT_DIR__|${PROJECT_DIR}|g" \
   "${PROJECT_DIR}/systemd/mediamtx.service" \
   > /etc/systemd/system/mediamtx.service
+sed \
+  -e "s|__APP_USER__|${APP_USER}|g" \
+  -e "s|__APP_GROUP__|${APP_GROUP}|g" \
+  -e "s|__PROJECT_DIR__|${PROJECT_DIR}|g" \
+  "${PROJECT_DIR}/systemd/oil-spill-source.service" \
+  > /etc/systemd/system/oil-spill-source.service
 install -m 0644 "${PROJECT_DIR}/systemd/oil-spill-funnel.service" \
   /etc/systemd/system/oil-spill-funnel.service
 chmod +x "${PROJECT_DIR}/scripts/"*.sh

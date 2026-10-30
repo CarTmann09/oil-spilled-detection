@@ -5,7 +5,8 @@ api: false
 metrics: false
 playback: false
 
-rtsp: false
+rtsp: true
+rtspAddress: 127.0.0.1:8554
 rtmp: false
 srt: false
 webrtc: false
@@ -18,11 +19,12 @@ hlsAllowOrigins: ["*"]
 
 pathDefaults:
   sourceOnDemand: true
-  sourceOnDemandStartTimeout: 10s
+  sourceOnDemandStartTimeout: 30s
   sourceOnDemandCloseAfter: 30s
   rtspTransport: tcp
 
 paths:
   jetty01:
+    # remote: URL HLS/RTSP. file: publisher dari FFmpeg lokal.
     # Diisi oleh MTX_PATHS_JETTY01_SOURCE dari scripts/run_mediamtx.sh.
     source: publisher

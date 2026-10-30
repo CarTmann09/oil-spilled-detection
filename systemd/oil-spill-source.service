@@ -1,0 +1,23 @@
+[Unit]
+Description=Local video source publisher for Oil Spill Monitoring
+After=network-online.target mediamtx.service
+Requires=mediamtx.service
+
+[Service]
+Type=simple
+User=__APP_USER__
+Group=__APP_GROUP__
+WorkingDirectory=__PROJECT_DIR__
+Environment=ENV_FILE=/etc/oil-spill/oil-spill.env
+ExecStart=__PROJECT_DIR__/scripts/run_file_publisher.sh
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadOnlyPaths=/etc/oil-spill
+ReadWritePaths=__PROJECT_DIR__/data
+
+[Install]
+WantedBy=multi-user.target

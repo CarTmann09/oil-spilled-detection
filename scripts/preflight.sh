@@ -22,6 +22,9 @@ PY
 [[ -f "${ENV_FILE}" ]] || fail "Environment file tidak ditemukan: ${ENV_FILE}"
 [[ -f "${PROJECT_DIR}/models/best_model.onnx" ]] || fail "Model ONNX tidak ditemukan"
 command -v ffmpeg >/dev/null || fail "ffmpeg belum terpasang"
+command -v mediamtx >/dev/null || fail "MediaMTX belum terpasang"
+mediamtx --validate-conf="${PROJECT_DIR}/config/mediamtx.yml" >/dev/null \
+  || fail "Konfigurasi MediaMTX tidak valid"
 
 set -a
 # shellcheck disable=SC1090
@@ -31,6 +34,18 @@ set +a
 if [[ "${VIDEO_SOURCE_TYPE:-}" == "rtsp" ]]; then
   [[ -n "${RTSP_URL:-}" && "${RTSP_URL}" != *"USERNAME:PASSWORD"* ]] \
     || fail "RTSP_URL belum diisi"
+fi
+MEDIA_MODE="${MEDIA_SOURCE_MODE:-remote}"
+if [[ "${MEDIA_MODE}" == "remote" ]]; then
+  MEDIA_SOURCE="${MEDIA_SOURCE_URL:-${RTSP_URL:-}}"
+  [[ -n "${MEDIA_SOURCE}" && "${MEDIA_SOURCE}" != *"USERNAME:PASSWORD"* ]] \
+    || fail "MEDIA_SOURCE_URL belum diisi"
+  [[ "${MEDIA_SOURCE}" != "rtsp://127.0.0.1:8554/jetty01" ]] \
+    || fail "MEDIA_SOURCE_URL tidak boleh menunjuk ke relay lokal"
+elif [[ "${MEDIA_MODE}" == "file" ]]; then
+  [[ -f "${MEDIA_FILE_PATH:-}" ]] || fail "MEDIA_FILE_PATH tidak ditemukan"
+else
+  fail "MEDIA_SOURCE_MODE harus remote atau file"
 fi
 if [[ "${FIREBASE_ENABLED:-false}" == "true" ]]; then
   [[ -n "${FIREBASE_DATABASE_URL:-}" ]] || fail "FIREBASE_DATABASE_URL kosong"

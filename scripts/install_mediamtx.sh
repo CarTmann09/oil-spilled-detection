@@ -6,6 +6,8 @@ if [[ ${EUID} -ne 0 ]]; then
   exit 1
 fi
 
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 ARCH="$(uname -m)"
 if [[ "${ARCH}" != "aarch64" && "${ARCH}" != "arm64" ]]; then
   echo "Arsitektur ${ARCH} bukan ARM64 Raspberry Pi."
@@ -38,6 +40,7 @@ curl -fL "${ASSET_URL}" -o "${TMP_DIR}/mediamtx.tar.gz"
 tar -xzf "${TMP_DIR}/mediamtx.tar.gz" -C "${TMP_DIR}"
 install -m 0755 "${TMP_DIR}/mediamtx" /usr/local/bin/mediamtx
 /usr/local/bin/mediamtx --version
+/usr/local/bin/mediamtx --validate-conf="${PROJECT_DIR}/config/mediamtx.yml"
 
-echo "MediaMTX terpasang. Jalankan setelah RTSP_URL di .env valid:"
+echo "MediaMTX terpasang dan konfigurasi valid. Jalankan setelah source valid:"
 echo "sudo systemctl enable --now mediamtx"

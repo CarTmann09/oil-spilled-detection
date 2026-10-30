@@ -22,6 +22,8 @@ Realtime Database, serta menyediakan live HLS melalui MediaMTX dan Tailscale Fun
   tidak membuka ID dan notifikasi baru.
 - FastAPI health/status/event/snapshot.
 - MediaMTX HLS dan Tailscale Funnel.
+- Source switcher independen: dashboard tetap melalui path MediaMTX `jetty01`,
+  sedangkan AI dapat membaca relay tersebut atau video lokal yang di-loop.
 - Service `systemd`, installer, health check, serta unit test.
 
 ## Kebutuhan Raspberry Pi
@@ -43,6 +45,43 @@ sudo chown "$USER":"$USER" /opt
 git clone <URL_REPOSITORY> /opt/oil-spill-monitor
 cd /opt/oil-spill-monitor
 sudo bash scripts/install_rpi.sh
+```
+
+Untuk branch pengujian ini, source dashboard dan AI dapat dipilih terpisah:
+
+```bash
+# Dashboard Jogja, AI Jogja
+sudo bash scripts/switch_media_source.sh public
+sudo bash scripts/switch_ai_source.sh relay
+
+# Dashboard Jogja, AI video lokal loop
+sudo bash scripts/switch_media_source.sh public
+sudo bash scripts/switch_ai_source.sh file \
+  /opt/oil-spill-monitor/data/tumpahan-2.mp4
+
+# Dashboard dan AI memakai source yang sama
+sudo bash scripts/switch_source.sh remote \
+  'rtsp://user:password@192.168.1.64:554/Streaming/Channels/102'
+```
+
+Jika Raspberry Pi sebelumnya memakai `main`, pindah ke branch pengujian dan pasang
+unit source baru dengan:
+
+```bash
+cd /opt/oil-spill-monitor
+git fetch origin
+git switch --track origin/test/e2e-onnx-public-hls
+bash scripts/deploy_update.sh
+```
+
+Copy video uji sebelum memilih mode file:
+
+```bash
+scp "tumpahan 2.mp4" USER_RASPI@IP_RASPI:/tmp/tumpahan-2.mp4
+sudo mv /tmp/tumpahan-2.mp4 /opt/oil-spill-monitor/data/tumpahan-2.mp4
+sudo chown "$USER":"$(id -gn)" /opt/oil-spill-monitor/data/tumpahan-2.mp4
+sudo bash scripts/switch_source.sh file \
+  /opt/oil-spill-monitor/data/tumpahan-2.mp4
 ```
 
 Edit environment:
